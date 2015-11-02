@@ -8,20 +8,20 @@ def main():
 	global user
 	user = User()
 	o = user.setOption()
-	if o == "a":
-		p = ""
-		u = user.setUsername()
-	else:
+	if o in ("1", "2"):
 		u = user.setUsername()
 		p = user.setPassword()
 		print p
+	else:
+		p = ""
+		u = user.setUsername()
 	mail = Mail()
 	mail.sqlExec(o, u, p)
 
 class User(object):
 	def setOption(self):
-		option = raw_input("c_reate user, new p_assword, a_lias : ")
-		if option in ('c', 'p', 'a'):
+		option = raw_input("""Choose option:\n1) Create user\n2) Update password\n3) Create alias\n4) Deactivate user\n: """)
+		if option in ("1", "2", "3", "4"):
 			return option
 		else:
 			self.setOption()
@@ -44,15 +44,17 @@ class Mail():
 		cursor = connection.cursor()
 		self.mailuser = mailuser
 		self.password = password
-		if option == 'c':
+		if option == "1":
 			homedir = "/"+self.mailuser
 			cursor.execute("""INSERT INTO mailbox (username, password, maildir, domain, active) VALUES (%s, %s, %s, %s, %s)""", (self.mailuser, self.password, homedir, 'kadam.ru', 1,))
-		elif option == 'p':
+		elif option == "2":
 			cursor.execute("""UPDATE mailbox SET password = %s where username = %s""", (self.password, self.mailuser,))
-		else: 
+		elif option == "3": 
 			alias = raw_input("Enter alias : ")
 			addr = self.mailuser+"@kadam.ru"
 			cursor.execute("""INSERT INTO alias (address, goto, active) VALUES (%s, %s, %s)""", (addr, alias, 1,))
+		else:
+			cursor.execute("""UPDATE mailbox SET active = 0 WHERE username = %s""", (self.mailuser,))
 		cursor.close()
 		connection.commit()
 		connection.close()	
